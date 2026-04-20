@@ -66,18 +66,12 @@ export function usePlayback(serverUrl, token) {
       }
 
       const src = streamUrl(serverUrl, token, track.partKey)
-      const resolvedSrc = new URL(src, location.href).href
 
-      if (audio.src !== resolvedSrc) {
-        clearFade()
-        audio.src = src
-        setProgress(0)
-        setAudioTime({ current: 0, duration: 0 })
-      } else {
-        clearFade()
-        audio.currentTime = 0
-        setProgress(0)
-      }
+      clearFade()
+      audio.src = src
+      audio.currentTime = 0
+      setProgress(0)
+      setAudioTime({ current: 0, duration: 0 })
 
       audio.volume = 1
       audio.play().catch(() => {})
