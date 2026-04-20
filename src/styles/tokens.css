@@ -1,0 +1,14 @@
+:root {
+  --bg: #08080c;
+  --surface: #14141a;
+  --gold: #c9a66b;
+  --gold-dark: #a07d4a;
+  --gold-light: #e0c992;
+  --text: #e8e4df;
+  --text-sub: rgba(232, 228, 223, 0.82);
+  --text-meta: rgba(232, 228, 223, 0.72);
+  --text-faint: rgba(232, 228, 223, 0.65);
+  --text-dim: rgba(232, 228, 223, 0.58);
+  --red: #e07070;
+  --border: rgba(255, 255, 255, 0.07);
+}
