@@ -169,7 +169,7 @@ function NowPlayingBar({ track, playing, progress, audioTime, onToggle, onPrev, 
           color: track ? T.text : T.textDim,
           overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
         }}>
-          {track?.title || 'Nothing playing'}
+          {track ? (track.title || track.artist || 'Untitled') : 'Nothing playing'}
         </div>
         <div style={{
           fontFamily: "'DM Sans',sans-serif", fontSize: 12, color: T.textMeta,
