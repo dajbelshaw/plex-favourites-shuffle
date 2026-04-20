@@ -6,7 +6,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 use tauri::{
     menu::{Menu, MenuItem, PredefinedMenuItem},
-    tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
+    tray::{MouseButton, MouseButtonState, TrayIcon, TrayIconBuilder, TrayIconEvent},
     Emitter, Manager,
 };
 use tauri_plugin_positioner::{Position, WindowExt};
@@ -25,7 +25,7 @@ pub fn run() {
         .setup(|app| {
             let win = app.get_webview_window("main").unwrap();
 
-            // Timestamp guard: ignore Focused(false) fired within 500 ms of the last show.
+            // Timestamp guard: ignore Focused(false) within 1500 ms of last show.
             let last_shown: Arc<AtomicI64> = Arc::new(AtomicI64::new(0));
             let last_shown_for_event = last_shown.clone();
             let win_for_event = win.clone();
@@ -33,7 +33,7 @@ pub fn run() {
             win.on_window_event(move |event| {
                 if let tauri::WindowEvent::Focused(false) = event {
                     let elapsed = now_ms() - last_shown_for_event.load(Ordering::Relaxed);
-                    if elapsed < 500 {
+                    if elapsed < 1500 {
                         return;
                     }
                     let _ = win_for_event.hide();
@@ -53,7 +53,7 @@ pub fn run() {
             let win_for_tray = win.clone();
             let last_shown_for_tray = last_shown.clone();
 
-            TrayIconBuilder::new()
+            let tray: TrayIcon = TrayIconBuilder::with_id("heartflow-tray")
                 .icon(tauri::include_image!("icons/tray/heart.png"))
                 .icon_as_template(true)
                 .tooltip("Heartflow")
@@ -89,6 +89,9 @@ pub fn run() {
                     _ => {}
                 })
                 .build(app)?;
+
+            // Keep the tray handle alive for the entire app lifetime.
+            app.manage(tray);
 
             Ok(())
         })

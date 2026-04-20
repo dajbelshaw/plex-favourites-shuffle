@@ -17,12 +17,13 @@
         "height": 580,
         "resizable": false,
         "decorations": false,
-        "transparent": true,
+        "transparent": false,
         "alwaysOnTop": true,
         "skipTaskbar": true,
         "visible": false,
         "focus": false,
-        "shadow": false
+        "shadow": true,
+        "acceptFirstMouse": true
       }
     ],
     "macOSPrivateApi": true,
