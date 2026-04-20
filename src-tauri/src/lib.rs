@@ -1,4 +1,8 @@
-use std::sync::{Arc, Mutex};
+use std::sync::{
+    atomic::{AtomicI64, Ordering},
+    Arc,
+};
+use std::time::{SystemTime, UNIX_EPOCH};
 
 use tauri::{
     menu::{Menu, MenuItem, PredefinedMenuItem},
@@ -7,6 +11,13 @@ use tauri::{
 };
 use tauri_plugin_positioner::{Position, WindowExt};
 
+fn now_ms() -> i64 {
+    SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_millis() as i64
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -14,20 +25,17 @@ pub fn run() {
         .setup(|app| {
             let win = app.get_webview_window("main").unwrap();
 
-            // Guard against the spurious Focused(false) that fires when the window
-            // is first shown and immediately loses focus before the user interacts.
-            let just_shown: Arc<Mutex<bool>> = Arc::new(Mutex::new(false));
-            let just_shown_for_event = just_shown.clone();
+            // Timestamp guard: ignore Focused(false) fired within 500 ms of the last show.
+            let last_shown: Arc<AtomicI64> = Arc::new(AtomicI64::new(0));
+            let last_shown_for_event = last_shown.clone();
             let win_for_event = win.clone();
 
             win.on_window_event(move |event| {
                 if let tauri::WindowEvent::Focused(false) = event {
-                    let mut guard = just_shown_for_event.lock().unwrap();
-                    if *guard {
-                        *guard = false;
+                    let elapsed = now_ms() - last_shown_for_event.load(Ordering::Relaxed);
+                    if elapsed < 500 {
                         return;
                     }
-                    drop(guard);
                     let _ = win_for_event.hide();
                 }
             });
@@ -43,10 +51,10 @@ pub fn run() {
             let menu = Menu::with_items(app, &[&reload, &settings, &sep, &quit])?;
 
             let win_for_tray = win.clone();
-            let just_shown_for_tray = just_shown.clone();
+            let last_shown_for_tray = last_shown.clone();
 
             TrayIconBuilder::new()
-                .icon(app.default_window_icon().unwrap().clone())
+                .icon(tauri::include_image!("icons/tray/heart.png"))
                 .icon_as_template(true)
                 .tooltip("Heartflow")
                 .menu(&menu)
@@ -61,8 +69,7 @@ pub fn run() {
                         if win_for_tray.is_visible().unwrap_or(false) {
                             let _ = win_for_tray.hide();
                         } else {
-                            // Set guard before show so the imminent Focused(false) is ignored
-                            *just_shown_for_tray.lock().unwrap() = true;
+                            last_shown_for_tray.store(now_ms(), Ordering::Relaxed);
                             let _ = win_for_tray.move_window(Position::TrayCenter);
                             let _ = win_for_tray.show();
                             let _ = win_for_tray.set_focus();

@@ -39,6 +39,10 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ],
+    "resources": [
+      "icons/tray/heart.png",
+      "icons/tray/heart@2x.png"
+    ],
     "category": "Music",
     "shortDescription": "Favourites shuffle player for Plex",
     "macOS": {
