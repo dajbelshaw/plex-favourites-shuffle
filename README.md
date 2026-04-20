@@ -41,6 +41,10 @@ Build a release app:
 npm run tauri build -- --bundles app
 ```
 
+## Sister app
+
+[Overflow](https://github.com/dajbelshaw/plex-coverflow) — a Cover Flow-style Plex music browser for the desktop.
+
 ## Stack
 
 - [Tauri 2](https://tauri.app) — native macOS shell
