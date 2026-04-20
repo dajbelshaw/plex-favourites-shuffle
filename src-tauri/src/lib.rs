@@ -31,11 +31,15 @@ pub fn run() {
             let win_for_event = win.clone();
 
             win.on_window_event(move |event| {
+                eprintln!("[hf] win_event={:?}", event);
                 if let tauri::WindowEvent::Focused(false) = event {
                     let elapsed = now_ms() - last_shown_for_event.load(Ordering::Relaxed);
+                    eprintln!("[hf] focus-lost elapsed={}ms", elapsed);
                     if elapsed < 1500 {
+                        eprintln!("[hf] suppressed");
                         return;
                     }
+                    eprintln!("[hf] hiding via focus-lost");
                     let _ = win_for_event.hide();
                 }
             });
@@ -59,20 +63,25 @@ pub fn run() {
                 .tooltip("Heartflow")
                 .menu(&menu)
                 .show_menu_on_left_click(false)
-                .on_tray_icon_event(move |_tray, event| {
+                .on_tray_icon_event(move |tray, event| {
+                    tauri_plugin_positioner::on_tray_event(tray.app_handle(), &event);
+                    eprintln!("[hf] tray_event={:?}", event);
                     if let TrayIconEvent::Click {
                         button: MouseButton::Left,
                         button_state: MouseButtonState::Up,
                         ..
                     } = event
                     {
-                        if win_for_tray.is_visible().unwrap_or(false) {
+                        let visible = win_for_tray.is_visible().unwrap_or(false);
+                        eprintln!("[hf] left-up visible={}", visible);
+                        if visible {
+                            eprintln!("[hf] hiding");
                             let _ = win_for_tray.hide();
                         } else {
                             last_shown_for_tray.store(now_ms(), Ordering::Relaxed);
-                            let _ = win_for_tray.move_window(Position::TrayCenter);
-                            let _ = win_for_tray.show();
-                            let _ = win_for_tray.set_focus();
+                            eprintln!("[hf] move={:?}", win_for_tray.move_window(Position::TrayCenter));
+                            eprintln!("[hf] show={:?}", win_for_tray.show());
+                            eprintln!("[hf] focus={:?}", win_for_tray.set_focus());
                         }
                     }
                 })
